@@ -70,6 +70,8 @@ XWalkRequestInterceptor::QueryForInterceptedRequestData(
   if (!io_thread_client.get())
     return scoped_ptr<InterceptedRequestData>();
 
+  io_thread_client->ShouldModifyRequest(location, request);
+
   return io_thread_client->ShouldInterceptRequest(location, request).Pass();
 }
 

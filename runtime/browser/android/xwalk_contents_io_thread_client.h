@@ -68,6 +68,11 @@ class XWalkContentsIoThreadClient {
                               int child_render_frame_id);
 
   // This method is called on the IO thread only.
+  virtual void ShouldModifyRequest(
+      const GURL& location,
+      net::URLRequest* request) = 0; 
+
+  // This method is called on the IO thread only.
   virtual scoped_ptr<InterceptedRequestData> ShouldInterceptRequest(
       const GURL& location,
       const net::URLRequest* request) = 0;

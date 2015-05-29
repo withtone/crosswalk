@@ -231,6 +231,14 @@ XWalkContentsIoThreadClientImpl::GetCacheMode() const {
           env, java_object_.obj()));
 }
 
+void XWalkContentsIoThreadClientImpl::ShouldModifyRequest(
+    const GURL& location,
+    net::URLRequest* request) {
+  DCHECK(BrowserThread::CurrentlyOn(BrowserThread::IO));
+  if (java_object_.is_null())
+    return;
+}
+
 scoped_ptr<InterceptedRequestData>
 XWalkContentsIoThreadClientImpl::ShouldInterceptRequest(
     const GURL& location,
