@@ -620,6 +620,11 @@ class XWalkContent extends FrameLayout implements XWalkPreferencesInternal.KeyVa
         }
 
         @Override
+        public String[][] shouldModifyRequest(final String url, final String[][] headers, boolean isMainFrame) {
+          return null;
+        }
+
+        @Override
         public InterceptedRequestData shouldInterceptRequest(final String url,
                 boolean isMainFrame) {
 

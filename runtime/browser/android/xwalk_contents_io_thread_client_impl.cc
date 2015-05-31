@@ -237,6 +237,54 @@ void XWalkContentsIoThreadClientImpl::ShouldModifyRequest(
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::IO));
   if (java_object_.is_null())
     return;
+  const content::ResourceRequestInfo* info =
+      content::ResourceRequestInfo::ForRequest(request);
+  bool is_main_frame = info &&
+      info->GetResourceType() == content::RESOURCE_TYPE_MAIN_FRAME;
+
+  JNIEnv* env = AttachCurrentThread();
+
+  // extract URLRequest headers so they can be passed to java
+  net::HttpRequestHeaders::Iterator ci(request->extra_request_headers());
+  int numpairs = 0;
+  for (; ci.GetNext(); ++numpairs) {}
+  net::HttpRequestHeaders::Iterator hi(request->extra_request_headers());
+  jclass stringsclazz = env->FindClass("[Ljava/lang/String;");
+  jclass stringclazz = env->FindClass("java/lang/String");
+  jobjectArray jpairs = env->NewObjectArray(numpairs, stringsclazz, 0);
+  int si = 0;
+  for (; hi.GetNext(); ++si) {
+    jobjectArray jpair = env->NewObjectArray(2, stringclazz, env->NewStringUTF(""));
+    env->SetObjectArrayElement(jpair, 0, env->NewStringUTF(hi.name().c_str()));
+    env->SetObjectArrayElement(jpair, 1, env->NewStringUTF(hi.value().c_str()));
+    env->SetObjectArrayElement(jpairs, si, jpair);
+  }
+
+  ScopedJavaLocalRef<jstring> jstring_url = ConvertUTF8ToJavaString(env, location.spec());
+  ScopedJavaLocalRef<jobjectArray> jarray_headers(env, jpairs);
+  ScopedJavaLocalRef<jobjectArray> jarray_updatedheaders = Java_XWalkContentsIoThreadClient_shouldModifyRequest(
+    env, java_object_.obj(), jstring_url.obj(), jarray_headers.obj(), is_main_frame);
+
+  // extract java result so it can be used to update the URLRequest
+  if (!jarray_updatedheaders.is_null()) {
+    jsize numheaders = env->GetArrayLength(jarray_updatedheaders.obj());
+    int pi = 0;
+    for (; pi<numheaders; ++pi) {
+      jobjectArray jupdatedpair = (jobjectArray)env->GetObjectArrayElement(jarray_updatedheaders.obj(), pi);
+      jsize num = env->GetArrayLength(jupdatedpair);
+      if (num == 2) {
+        jstring jnamestr = (jstring)env->GetObjectArrayElement(jupdatedpair, 0);
+        char const* name = env->GetStringUTFChars(jnamestr, 0);
+        jstring jvaluestr = (jstring)env->GetObjectArrayElement(jupdatedpair, 1);
+        char const* value = env->GetStringUTFChars(jvaluestr, 0);
+
+        // do something with name and value here
+
+        env->ReleaseStringUTFChars(jvaluestr, value);
+        env->ReleaseStringUTFChars(jnamestr, name);
+      }
+    }
+  }
 }
 
 scoped_ptr<InterceptedRequestData>
