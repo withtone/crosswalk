@@ -231,9 +231,45 @@ XWalkContentsIoThreadClientImpl::GetCacheMode() const {
           env, java_object_.obj()));
 }
 
+struct namevaluestate_t;
+typedef void(*namevaluefunc_t)(namevaluestate_t* state, char const*, char const*, char const*, char const*);
+struct namevaluestate_t {
+  net::URLRequest* request;
+  namevaluefunc_t namevaluefn;
+};
+
+static bool onheader(namevaluestate_t* state, char const* beg, char const* end) {
+  char const* cur;
+  if ((cur = strstr(beg, ": ")) <= 0) {
+    return false;
+  } else {
+    state->namevaluefn(state, beg, cur, cur+1, end);
+    return true;
+  }
+}
+static bool foreachheader(namevaluestate_t* state, char const* beg, char const* end) {
+  char const* pos = beg;
+  char const* cur = beg;
+  while ((cur = strstr(pos, "\r\n"))) {
+    if (!onheader(state, pos, cur)) {
+      return false;
+    }
+    pos = cur + 2;
+  }
+  if (cur != end && !onheader(state, pos, end)) {
+    return false;
+  }
+  return true;
+}
+
+static void onnamevalue(namevaluestate_t* state, char const* namebeg, char const* nameend, char const* valuebeg, char const* valueend) {
+  state->request->SetExtraRequestHeaderByName(std::string(namebeg, nameend), std::string(valuebeg, valueend), true);
+}
+
 void XWalkContentsIoThreadClientImpl::ShouldModifyRequest(
     const GURL& location,
     net::URLRequest* request) {
+  return;
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::IO));
   if (java_object_.is_null())
     return;
@@ -261,12 +297,21 @@ void XWalkContentsIoThreadClientImpl::ShouldModifyRequest(
     env->SetObjectArrayElement(jpairs, si, jpair);
   }
   */
+
   ScopedJavaLocalRef<jstring> jstring_url = ConvertUTF8ToJavaString(env, location.spec());
-  ScopedJavaLocalRef<jstring> jstring_headers =
-      ConvertUTF8ToJavaString(env, request->extra_request_headers().ToString().c_str());
+  ScopedJavaLocalRef<jstring> jstring_headers = ConvertUTF8ToJavaString(env, request->extra_request_headers().ToString().c_str());
   //ScopedJavaLocalRef<jobjectArray> jarray_headers(env, jpairs);
-  ScopedJavaLocalRef<jstring> jarray_updatedheaders = Java_XWalkContentsIoThreadClient_shouldModifyRequest(
+  ScopedJavaLocalRef<jstring> jstring_outheaders = Java_XWalkContentsIoThreadClient_shouldModifyRequest(
     env, java_object_.obj(), jstring_url.obj(), jstring_headers.obj(), is_main_frame);
+
+  if (!jstring_outheaders.is_null()) {
+    char const* outheaders = env->GetStringUTFChars(jstring_outheaders.obj(), 0);
+
+    namevaluestate_t state = {request, onnamevalue};
+    foreachheader(&state, outheaders, outheaders + strlen(outheaders));
+
+    env->ReleaseStringUTFChars(jstring_outheaders.obj(), outheaders);
+  }
 
   /*
   // extract java result so it can be used to update the URLRequest
