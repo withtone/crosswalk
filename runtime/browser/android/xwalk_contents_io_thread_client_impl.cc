@@ -269,7 +269,6 @@ static void onnamevalue(namevaluestate_t* state, char const* namebeg, char const
 void XWalkContentsIoThreadClientImpl::ShouldModifyRequest(
     const GURL& location,
     net::URLRequest* request) {
-  return;
   DCHECK(BrowserThread::CurrentlyOn(BrowserThread::IO));
   if (java_object_.is_null())
     return;
