@@ -245,6 +245,7 @@ void XWalkContentsIoThreadClientImpl::ShouldModifyRequest(
   JNIEnv* env = AttachCurrentThread();
 
   // extract URLRequest headers so they can be passed to java
+  /*
   net::HttpRequestHeaders::Iterator ci(request->extra_request_headers());
   int numpairs = 0;
   for (; ci.GetNext(); ++numpairs) {}
@@ -259,12 +260,15 @@ void XWalkContentsIoThreadClientImpl::ShouldModifyRequest(
     env->SetObjectArrayElement(jpair, 1, env->NewStringUTF(hi.value().c_str()));
     env->SetObjectArrayElement(jpairs, si, jpair);
   }
-
+  */
   ScopedJavaLocalRef<jstring> jstring_url = ConvertUTF8ToJavaString(env, location.spec());
-  ScopedJavaLocalRef<jobjectArray> jarray_headers(env, jpairs);
-  ScopedJavaLocalRef<jobjectArray> jarray_updatedheaders = Java_XWalkContentsIoThreadClient_shouldModifyRequest(
-    env, java_object_.obj(), jstring_url.obj(), jarray_headers.obj(), is_main_frame);
+  ScopedJavaLocalRef<jstring> jstring_headers =
+      ConvertUTF8ToJavaString(env, request->extra_request_headers().ToString().c_str());
+  //ScopedJavaLocalRef<jobjectArray> jarray_headers(env, jpairs);
+  ScopedJavaLocalRef<jstring> jarray_updatedheaders = Java_XWalkContentsIoThreadClient_shouldModifyRequest(
+    env, java_object_.obj(), jstring_url.obj(), jstring_headers.obj(), is_main_frame);
 
+  /*
   // extract java result so it can be used to update the URLRequest
   if (!jarray_updatedheaders.is_null()) {
     jsize numheaders = env->GetArrayLength(jarray_updatedheaders.obj());
@@ -285,6 +289,7 @@ void XWalkContentsIoThreadClientImpl::ShouldModifyRequest(
       }
     }
   }
+  */
 }
 
 scoped_ptr<InterceptedRequestData>

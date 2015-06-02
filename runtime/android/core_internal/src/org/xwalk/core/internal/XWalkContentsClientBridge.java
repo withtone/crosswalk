@@ -230,6 +230,14 @@ class XWalkContentsClientBridge extends XWalkContentsClient
     }
 
     @Override
+    public String shouldModifyRequest(String url, String headers) {
+        if (isOwnerActivityRunning()) {
+          return mXWalkResourceClient.shouldModifyRequest(mXWalkView, url, headers);
+        }
+        return null;
+    }
+
+    @Override
     public WebResourceResponse shouldInterceptRequest(String url) {
         if (isOwnerActivityRunning()) {
             return mXWalkResourceClient.shouldInterceptLoadRequest(mXWalkView, url);

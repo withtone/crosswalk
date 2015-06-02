@@ -123,6 +123,8 @@ abstract class XWalkContentsClient extends ContentViewClient {
 
     public abstract void onProgressChanged(int progress);
 
+    public abstract String shouldModifyRequest(String url, String headers);
+
     public abstract WebResourceResponse shouldInterceptRequest(String url);
 
     public abstract void onResourceLoadStarted(String url);

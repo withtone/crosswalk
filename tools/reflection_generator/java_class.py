@@ -40,6 +40,8 @@ class JavaClassLoader(object):
     try:
       file_handle = open(file_name, 'r')
       file_content = file_handle.read()
+      #if file_name == "runtime/android/core_internal/src/org/xwalk/core/internal/XWalkResourceClientInternal.java":
+      #  print "[FILE NAME] = " + file_name + ' - ' + file_content
       file_handle.close()
     except Exception:
       print 'Error reading input Java file, please check.'
@@ -266,6 +268,7 @@ class InternalJavaFileData(object):
       method_name = match.group('method_name')
       method_params = match.group('method_params')
       method_doc = match.group('method_doc')
+      #print "[METHOD-NAME-1] " + method_name
       method = Method(
           self._class_name,
           self._class_loader,
@@ -289,6 +292,7 @@ class InternalJavaFileData(object):
       method_params = match.group('method_params')
       method_return = match.group('method_return')
       method_doc = match.group('method_doc')
+      #print "[METHOD-NAME-2] " + method_name
       method = Method(
           self._class_name,
           self._class_loader,
@@ -313,6 +317,7 @@ class InternalJavaFileData(object):
       method_params = match.group('method_params')
       method_return = match.group('method_return')
       method_doc = match.group('method_doc')
+      #print "[METHOD-NAME-3] " + method_name
       method = Method(
           self._class_name,
           self._class_loader,
@@ -337,6 +342,7 @@ class InternalJavaFileData(object):
       method_params = match.group('method_params')
       method_return = match.group('method_return')
       method_doc = match.group('method_doc')
+      #print "[METHOD-NAME-4] " + method_name
       method = Method(
           self._class_name,
           self._class_loader,

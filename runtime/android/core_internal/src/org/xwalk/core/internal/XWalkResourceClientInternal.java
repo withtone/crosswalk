@@ -157,6 +157,19 @@ public class XWalkResourceClientInternal {
     }
 
     /**
+     * Notify the client of a resource request and allow the client to modify its headers
+     * @param view the owner XWalkViewInternal instance.
+     * @param url The raw url of the resource.
+     * @param headers A list of existing extra headers
+     * @return A concatenated string of additional headers to add to the request
+     * @since 1.0
+     */
+    @XWalkAPI
+    public String shouldModifyRequest(XWalkViewInternal view, String url, String headers) {
+      return null;
+    }
+
+    /**
      * Notify the client of a resource request and allow the client to return
      * the data.  If the return value is null, the XWalkViewInternal
      * will continue to load the resource as usual.  Otherwise, the return

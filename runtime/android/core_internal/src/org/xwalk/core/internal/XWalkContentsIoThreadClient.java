@@ -16,7 +16,7 @@ interface XWalkContentsIoThreadClient {
     public int getCacheMode();
 
     @CalledByNative
-    public String[][] shouldModifyRequest(String url, String[][] headers, boolean isMainFrame);
+    public String shouldModifyRequest(String url, String headers, boolean isMainFrame);
 
     @CalledByNative
     public InterceptedRequestData shouldInterceptRequest(String url, boolean isMainFrame);
