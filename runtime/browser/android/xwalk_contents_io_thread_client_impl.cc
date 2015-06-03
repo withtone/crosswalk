@@ -26,6 +26,9 @@
 #include "url/gurl.h"
 #include "xwalk/runtime/browser/android/intercepted_request_data_impl.h"
 
+#include <android/log.h>
+#define INFO(...) ((void)__android_log_print(ANDROID_LOG_INFO, "tone-webview", __VA_ARGS__))
+
 using base::android::AttachCurrentThread;
 using base::android::ConvertUTF8ToJavaString;
 using base::android::JavaRef;
@@ -279,61 +282,18 @@ void XWalkContentsIoThreadClientImpl::ShouldModifyRequest(
 
   JNIEnv* env = AttachCurrentThread();
 
-  // extract URLRequest headers so they can be passed to java
-  /*
-  net::HttpRequestHeaders::Iterator ci(request->extra_request_headers());
-  int numpairs = 0;
-  for (; ci.GetNext(); ++numpairs) {}
-  net::HttpRequestHeaders::Iterator hi(request->extra_request_headers());
-  jclass stringsclazz = env->FindClass("[Ljava/lang/String;");
-  jclass stringclazz = env->FindClass("java/lang/String");
-  jobjectArray jpairs = env->NewObjectArray(numpairs, stringsclazz, 0);
-  int si = 0;
-  for (; hi.GetNext(); ++si) {
-    jobjectArray jpair = env->NewObjectArray(2, stringclazz, env->NewStringUTF(""));
-    env->SetObjectArrayElement(jpair, 0, env->NewStringUTF(hi.name().c_str()));
-    env->SetObjectArrayElement(jpair, 1, env->NewStringUTF(hi.value().c_str()));
-    env->SetObjectArrayElement(jpairs, si, jpair);
-  }
-  */
-
   ScopedJavaLocalRef<jstring> jstring_url = ConvertUTF8ToJavaString(env, location.spec());
   ScopedJavaLocalRef<jstring> jstring_headers = ConvertUTF8ToJavaString(env, request->extra_request_headers().ToString().c_str());
-  //ScopedJavaLocalRef<jobjectArray> jarray_headers(env, jpairs);
   ScopedJavaLocalRef<jstring> jstring_outheaders = Java_XWalkContentsIoThreadClient_shouldModifyRequest(
     env, java_object_.obj(), jstring_url.obj(), jstring_headers.obj(), is_main_frame);
 
+
   if (!jstring_outheaders.is_null()) {
-    char const* outheaders = env->GetStringUTFChars(jstring_outheaders.obj(), 0);
-
+    std::string outheaders = base::android::ConvertJavaStringToUTF8(env, jstring_outheaders.obj());
     namevaluestate_t state = {request, onnamevalue};
-    foreachheader(&state, outheaders, outheaders + strlen(outheaders));
-
-    env->ReleaseStringUTFChars(jstring_outheaders.obj(), outheaders);
+    foreachheader(&state, outheaders.c_str(), outheaders.c_str() + outheaders.size());
   }
 
-  /*
-  // extract java result so it can be used to update the URLRequest
-  if (!jarray_updatedheaders.is_null()) {
-    jsize numheaders = env->GetArrayLength(jarray_updatedheaders.obj());
-    int pi = 0;
-    for (; pi<numheaders; ++pi) {
-      jobjectArray jupdatedpair = (jobjectArray)env->GetObjectArrayElement(jarray_updatedheaders.obj(), pi);
-      jsize num = env->GetArrayLength(jupdatedpair);
-      if (num == 2) {
-        jstring jnamestr = (jstring)env->GetObjectArrayElement(jupdatedpair, 0);
-        char const* name = env->GetStringUTFChars(jnamestr, 0);
-        jstring jvaluestr = (jstring)env->GetObjectArrayElement(jupdatedpair, 1);
-        char const* value = env->GetStringUTFChars(jvaluestr, 0);
-
-        // do something with name and value here
-
-        env->ReleaseStringUTFChars(jvaluestr, value);
-        env->ReleaseStringUTFChars(jnamestr, name);
-      }
-    }
-  }
-  */
 }
 
 scoped_ptr<InterceptedRequestData>
