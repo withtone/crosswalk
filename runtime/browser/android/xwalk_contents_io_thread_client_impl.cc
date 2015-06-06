@@ -26,9 +26,6 @@
 #include "url/gurl.h"
 #include "xwalk/runtime/browser/android/intercepted_request_data_impl.h"
 
-#include <android/log.h>
-#define INFO(...) ((void)__android_log_print(ANDROID_LOG_INFO, "tone-webview", __VA_ARGS__))
-
 using base::android::AttachCurrentThread;
 using base::android::ConvertUTF8ToJavaString;
 using base::android::JavaRef;
